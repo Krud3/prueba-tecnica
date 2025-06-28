@@ -1,8 +1,6 @@
 #Makefile
 include .env
 
-CONTAINER_NAME=prueba-tecnica-db
-
 up:
 	docker-compose up -db
 

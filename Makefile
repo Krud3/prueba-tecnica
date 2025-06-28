@@ -2,7 +2,13 @@
 include .env
 
 up:
-	docker-compose up -db
+	docker-compose up -d
+
+up-db:
+	docker-compose up -d db
+
+up-redis:
+	docker-compose up -d redis
 
 down:
 	docker-compose down

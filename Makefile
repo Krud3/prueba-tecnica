@@ -11,7 +11,7 @@ logs:
 	docker-compose logs -f
 
 psql:
-	docker exec -it $(CONTAINER_NAME) psql -U $(DB_USER) -d $(DB_NAME)
+	docker exec -it $(NAME_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME)
 
 migrate:
 	go run cmd/api/main.go migrate

@@ -25,7 +25,9 @@ type CustomerRepository interface {
 
 type WorkOrderRepository interface {
 	Create(ctx context.Context, workOrder domain.WorkOrder) error
+	CompleteOrder(ctx context.Context, id uuid.UUID) error
 	FindByID(ctx context.Context, id uuid.UUID) (*domain.WorkOrder, error)
 	FindByFilter(ctx context.Context, filters WorkOrderFilters) ([]domain.WorkOrder, error)
+	FindByCustomerID(ctx context.Context, customerID uuid.UUID) ([]domain.WorkOrder, error)
 	Update(ctx context.Context, workOrder domain.WorkOrder) error
 }

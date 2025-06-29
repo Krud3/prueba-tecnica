@@ -26,6 +26,6 @@ type CustomerRepository interface {
 type WorkOrderRepository interface {
 	Create(ctx context.Context, workOrder domain.WorkOrder) error
 	FindByID(ctx context.Context, id uuid.UUID) (*domain.WorkOrder, error)
-	FindByDateRange(ctx context.Context, filters WorkOrderFilters) ([]domain.WorkOrder, error)
+	FindByFilter(ctx context.Context, filters WorkOrderFilters) ([]domain.WorkOrder, error)
 	Update(ctx context.Context, workOrder domain.WorkOrder) error
 }

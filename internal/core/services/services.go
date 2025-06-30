@@ -73,30 +73,36 @@ func NewWorkOrderService(workOrderRepo ports.WorkOrderRepository, customerRepo p
 
 func (wS *WorkOrderService) Create(ctx context.Context, workOrder domain.WorkOrder) error {
 
+	// compares end and begin not > 2 #business logic 2
 	if workOrder.PlannedDateEnd.Sub(workOrder.PlannedDateBegin).Hours() > 2 {
 		return ErrDateIntertal
 	}
 
+	// get customer
 	customer, err := wS.cRepo.FindByID(ctx, workOrder.CustomerID)
 	if err != nil {
 		return err
 	}
 
+	// switch customer.IsActive from domain to handle errors
 	switch customer.IsActive {
 	case true:
+		// trying to activate a customer already active
 		if workOrder.Type == domain.TypeActivate {
 			return ErrAA
 		}
 	case false:
+		// trying to cancel a customer notActive
 		if workOrder.Type == domain.TypeCancell {
 			return ErrCC
 		}
 	}
 
+	// create workOrder
 	return wS.wRepo.Create(ctx, workOrder)
 }
 
-// handles CompleteOrder for bussines conditions
+// handles CompleteOrder for business conditions
 func (wS *WorkOrderService) CompleteOrder(ctx context.Context, id uuid.UUID) error {
 	// check if workOrder exist by ID
 	workOrder, err := wS.wRepo.FindByID(ctx, id)

@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 func NewGormDB() (*gorm.DB, error) {
-	godotenv.Load()
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"),
@@ -28,5 +26,5 @@ func NewGormDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	return db, err
+	return db, nil
 }

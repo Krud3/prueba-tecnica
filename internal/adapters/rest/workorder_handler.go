@@ -18,6 +18,7 @@ type WorkOrderHandler struct {
 	wS *services.WorkOrderService
 }
 
+// builder
 func NewWorkOrderHandler(wS *services.WorkOrderService) *WorkOrderHandler {
 	return &WorkOrderHandler{wS: wS}
 }
@@ -29,7 +30,7 @@ func (wH *WorkOrderHandler) Create(c *fiber.Ctx) error {
 	// try to parse c data to workOrder struct
 	if err := c.BodyParser(&workOrder); err != nil {
 		// if fails badrequest 400
-		c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "cuerpo de la petición inválido"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "cuerpo de la petición inválido"})
 	}
 	// using handler to get the service to create workOrder
 	err := wH.wS.Create(c.Context(), workOrder)
@@ -54,21 +55,29 @@ func (wH *WorkOrderHandler) Create(c *fiber.Ctx) error {
 func (wH *WorkOrderHandler) CompleteOrder(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	workOrderID, err := uuid.Parse(idStr)
+	// verifies if id match uuid struct
 	if err != nil {
+		// 400
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "EL campo ID de la orden es inválido"})
 	}
 
+	// the service try to CompleteOrder
 	err = wH.wS.CompleteOrder(c.Context(), workOrderID)
 	if err != nil {
 		switch {
+		// custom errors
 		case errors.Is(err, services.ErrWODone), errors.Is(err, services.ErrWOCancelled):
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+		// not found
 		case errors.Is(err, gorm.ErrRecordNotFound):
+			// 404
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "orden no encontrada"})
 		default:
+			// 500
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 	}
+	// 200 ok
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Orden completada exitosamente"})
 }
 
@@ -76,29 +85,39 @@ func (wH *WorkOrderHandler) CompleteOrder(c *fiber.Ctx) error {
 func (wH *WorkOrderHandler) GetByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	workOrderID, err := uuid.Parse(idStr)
+	// verifies if id match uuid struct
 	if err != nil {
+		// 400
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "EL campo ID de la orden es inválido"})
 	}
 
 	workOrder, err := wH.wS.FindByID(c.Context(), workOrderID)
+	// handle error
 	if err != nil {
+		//500
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
+	// empty?
 	if workOrder == nil {
+		// 404
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "orden no encontrada"})
 	}
 
+	// 200 ok
 	return c.Status(fiber.StatusOK).JSON(workOrder)
 }
 
 // GET /work-orders?since=...&until=...&status=...
 func (wH *WorkOrderHandler) GetFiltered(c *fiber.Ctx) error {
+	// struct ports.WorkOrderFilters
 	filters := ports.WorkOrderFilters{}
-
+	// get since value
 	sinceStr := c.Query("since")
 	if sinceStr != "" {
+		// verify time format
 		since, err := time.Parse(time.RFC3339, sinceStr)
 		if err != nil {
+			// 400
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "formato de fecha 'since' inválido, usar formato RFC3339 (YYYY-MM-DDTHH:MM:SSZ)",
 			})
@@ -106,10 +125,13 @@ func (wH *WorkOrderHandler) GetFiltered(c *fiber.Ctx) error {
 		filters.Since = &since
 	}
 
+	// get until value
 	untilStr := c.Query("until")
 	if untilStr != "" {
+		// verify time format
 		until, err := time.Parse(time.RFC3339, untilStr)
 		if err != nil {
+			// 400
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "formato de fecha 'until' inválido, usar formato RFC3339 (YYYY-MM-DDTHH:MM:SSZ)",
 			})
@@ -117,10 +139,18 @@ func (wH *WorkOrderHandler) GetFiltered(c *fiber.Ctx) error {
 		filters.Until = &until
 	}
 
+	// verifies if since > until
+	if filters.Since != nil && filters.Until != nil && filters.Since.After(*filters.Until) {
+		// 400
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "since no puede ser posterior a until"})
+	}
+	// get status value
 	statusStr := c.Query("status")
 	if statusStr != "" {
 		status := domain.Status(statusStr)
+		// verifies if status is valid
 		if status != domain.StatusNew && status != domain.StatusDone && status != domain.StatusCancelled {
+			// 400
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "valor de 'status' inválido, debe ser 'new', 'done' o 'cancelled'",
 			})
@@ -128,11 +158,14 @@ func (wH *WorkOrderHandler) GetFiltered(c *fiber.Ctx) error {
 		filters.Status = &status
 	}
 
+	// trying to find by filter using service
 	workOrders, err := wH.wS.FindByFilter(c.Context(), filters)
 	if err != nil {
+		// 500 server error
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "error al buscar las órdenes de trabajo"})
 	}
 
+	// 200 ok
 	return c.Status(fiber.StatusOK).JSON(workOrders)
 }
 
@@ -141,13 +174,17 @@ func (wH *WorkOrderHandler) GetByCustomerID(c *fiber.Ctx) error {
 	idStr := c.Params("customerID")
 	customerID, err := uuid.Parse(idStr)
 	if err != nil {
+		// id given must match uuid struct
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ID de cliente inválido"})
 	}
 
+	// trying to find using service
 	workOrders, err := wH.wS.FindByCustomerID(c.Context(), customerID)
 	if err != nil {
+		// 500 server error finding by customer id
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	// 200 ok
 	return c.Status(fiber.StatusOK).JSON(workOrders)
 }

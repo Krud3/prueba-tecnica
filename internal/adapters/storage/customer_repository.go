@@ -43,11 +43,11 @@ func (r *gormCustomerRepository) FindByID(ctx context.Context, id uuid.UUID) (*d
 	// assings customer by pointer
 	result := r.db.WithContext(ctx).First(&customer, "id = ?", id)
 	if result.Error != nil {
-		// if not found
+		// if error
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
-		// if error
+		// if not found
 		return nil, result.Error
 	}
 	// founded

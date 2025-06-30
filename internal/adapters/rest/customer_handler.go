@@ -18,7 +18,17 @@ func NewCustomerHandler(cS *services.CustomerService) *CustomerHandler {
 	return &CustomerHandler{cS: cS}
 }
 
-// POST /customers
+// Create crea un nuevo cliente.
+// @Summary      Crea un nuevo cliente
+// @Description  Crea un nuevo cliente en la base de datos con estado inactivo por defecto.
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Param        customer body domain.Customer true "Datos del Cliente a crear"
+// @Success      201 {object} domain.Customer
+// @Failure      400 {object} map[string]string "Error: Petición inválida"
+// @Failure      500 {object} map[string]string "Error: Error interno del servidor"
+// @Router       /customers [post]
 func (cH *CustomerHandler) Create(c *fiber.Ctx) error {
 	var customer domain.Customer
 	// check if params match domain.Customer
@@ -35,7 +45,17 @@ func (cH *CustomerHandler) Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(customer)
 }
 
-// GET /customers/:id
+// GetByID busca un cliente por su ID.
+// @Summary      Busca un cliente por ID
+// @Description  Obtiene los detalles de un cliente específico usando su UUID.
+// @Tags         customers
+// @Produce      json
+// @Param        id path string true "ID del Cliente (UUID)"
+// @Success      200 {object} domain.Customer
+// @Failure      400 {object} map[string]string "Error: ID inválido"
+// @Failure      404 {object} map[string]string "Error: Cliente no encontrado"
+// @Failure      500 {object} map[string]string "Error: Error interno del servidor"
+// @Router       /customers/{id} [get]
 func (cH *CustomerHandler) GetByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	customerID, err := uuid.Parse(idStr)
@@ -57,7 +77,14 @@ func (cH *CustomerHandler) GetByID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(customer)
 }
 
-// GET /customers/active
+// GetActive obtiene todos los clientes activos.
+// @Summary      Obtiene clientes activos
+// @Description  Devuelve una lista de todos los clientes cuyo estado es 'is_active = true'.
+// @Tags         customers
+// @Produce      json
+// @Success      200 {array} domain.Customer
+// @Failure      500 {object} map[string]string "Error: Error interno del servidor"
+// @Router       /customers/active [get]
 func (cH *CustomerHandler) GetActive(c *fiber.Ctx) error {
 	// using handler to get the service to get actives
 	customers, err := cH.cS.GetActive(c.Context())

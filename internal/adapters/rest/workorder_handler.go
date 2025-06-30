@@ -23,7 +23,19 @@ func NewWorkOrderHandler(wS *services.WorkOrderService) *WorkOrderHandler {
 	return &WorkOrderHandler{wS: wS}
 }
 
-// POST /work-orders
+// Create crea una nueva orden de trabajo.
+// @Summary      Crea una nueva orden de trabajo
+// @Description  Crea una nueva orden para un cliente. Valida reglas de negocio como el estado del cliente y el intervalo de fechas.
+// @Tags         work-orders
+// @Accept       json
+// @Produce      json
+// @Param        workOrder body domain.WorkOrder true "Datos de la Orden de Trabajo a crear"
+// @Success      201 {object} domain.WorkOrder
+// @Failure      400 {object} map[string]string "Error: Petición inválida"
+// @Failure      404 {object} map[string]string "Error: Cliente no encontrado"
+// @Failure      409 {object} map[string]string "Error: Conflicto de negocio (ej. cliente ya activo)"
+// @Failure      500 {object} map[string]string "Error: Error interno del servidor"
+// @Router       /work-orders [post]
 func (wH *WorkOrderHandler) Create(c *fiber.Ctx) error {
 	// store workOrder data
 	var workOrder domain.WorkOrder
@@ -51,7 +63,18 @@ func (wH *WorkOrderHandler) Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(workOrder)
 }
 
-// PATCH /work-orders/:id/complete
+// CompleteOrder completa una orden de trabajo.
+// @Summary      Completa una orden de trabajo
+// @Description  Marca una orden como 'done', lo que activa/desactiva al cliente asociado y envía un evento a Redis.
+// @Tags         work-orders
+// @Produce      json
+// @Param        id path string true "ID de la Orden de Trabajo (UUID)"
+// @Success      200 {object} map[string]string
+// @Failure      400 {object} map[string]string "Error: ID inválido"
+// @Failure      404 {object} map[string]string "Error: Orden no encontrada"
+// @Failure      409 {object} map[string]string "Error: Conflicto de estado (ej. la orden ya está completada)"
+// @Failure      500 {object} map[string]string "Error: Error interno del servidor"
+// @Router       /work-orders/{id}/complete [patch]
 func (wH *WorkOrderHandler) CompleteOrder(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	workOrderID, err := uuid.Parse(idStr)
@@ -81,7 +104,17 @@ func (wH *WorkOrderHandler) CompleteOrder(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Orden completada exitosamente"})
 }
 
-// GET /work-orders/:id
+// GetByID busca una orden de trabajo por su ID.
+// @Summary      Busca una orden de trabajo por ID
+// @Description  Obtiene los detalles de una orden de trabajo, incluyendo la información del cliente embebida.
+// @Tags         work-orders
+// @Produce      json
+// @Param        id path string true "ID de la Orden de Trabajo (UUID)"
+// @Success      200 {object} domain.WorkOrder
+// @Failure      400 {object} map[string]string "Error: ID inválido"
+// @Failure      404 {object} map[string]string "Error: Orden no encontrada"
+// @Failure      500 {object} map[string]string "Error: Error interno del servidor"
+// @Router       /work-orders/{id} [get]
 func (wH *WorkOrderHandler) GetByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	workOrderID, err := uuid.Parse(idStr)
@@ -107,7 +140,18 @@ func (wH *WorkOrderHandler) GetByID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(workOrder)
 }
 
-// GET /work-orders?since=...&until=...&status=...
+// GetFiltered busca órdenes de trabajo con filtros.
+// @Summary      Busca órdenes de trabajo con filtros
+// @Description  Obtiene una lista de órdenes de trabajo. Se puede filtrar por rango de fechas (since, until) y/o por estado (status).
+// @Tags         work-orders
+// @Produce      json
+// @Param        since  query string false "Fecha de inicio (Formato RFC3339: 2024-07-30T10:00:00Z)"
+// @Param        until  query string false "Fecha de fin (Formato RFC3339: 2024-07-30T10:00:00Z)"
+// @Param        status query string false "Estado de la orden" Enums(new, done, cancelled)
+// @Success      200 {array} domain.WorkOrder
+// @Failure      400 {object} map[string]string "Error: Parámetro de filtro inválido"
+// @Failure      500 {object} map[string]string "Error: Error interno del servidor"
+// @Router       /work-orders [get]
 func (wH *WorkOrderHandler) GetFiltered(c *fiber.Ctx) error {
 	// struct ports.WorkOrderFilters
 	filters := ports.WorkOrderFilters{}
@@ -169,7 +213,16 @@ func (wH *WorkOrderHandler) GetFiltered(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(workOrders)
 }
 
-// GET /customers/:customerID/work-orders
+// GetByCustomerID busca órdenes de trabajo por ID de cliente.
+// @Summary      Busca órdenes de trabajo por ID de cliente
+// @Description  Obtiene una lista de todas las órdenes de trabajo asociadas a un cliente específico.
+// @Tags         work-orders, customers
+// @Produce      json
+// @Param        customerID path string true "ID del Cliente (UUID)"
+// @Success      200 {array} domain.WorkOrder
+// @Failure      400 {object} map[string]string "Error: ID de cliente inválido"
+// @Failure      500 {object} map[string]string "Error: Error interno del servidor"
+// @Router       /customers/{customerID}/work-orders [get]
 func (wH *WorkOrderHandler) GetByCustomerID(c *fiber.Ctx) error {
 	idStr := c.Params("customerID")
 	customerID, err := uuid.Parse(idStr)

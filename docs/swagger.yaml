@@ -1,0 +1,384 @@
+basePath: /api/v1
+definitions:
+  domain.Customer:
+    properties:
+      address:
+        type: string
+      createdAt:
+        type: string
+      endDate:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      lastName:
+        type: string
+      startDate:
+        description: puntero para poder capturar el nil
+        type: string
+      workOrders:
+        items:
+          $ref: '#/definitions/domain.WorkOrder'
+        type: array
+    type: object
+  domain.Status:
+    enum:
+    - new
+    - done
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - StatusNew
+    - StatusDone
+    - StatusCancelled
+  domain.Type:
+    enum:
+    - activar cliente
+    - cancelar cliente
+    type: string
+    x-enum-varnames:
+    - TypeActivate
+    - TypeCancell
+  domain.WorkOrder:
+    properties:
+      createdAt:
+        type: string
+      customer:
+        allOf:
+        - $ref: '#/definitions/domain.Customer'
+        description: facilita la condicion 9
+      customerID:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      plannedDateBegin:
+        type: string
+      plannedDateEnd:
+        type: string
+      status:
+        $ref: '#/definitions/domain.Status'
+      type:
+        allOf:
+        - $ref: '#/definitions/domain.Type'
+        description: debido a la logica de negocio, definimos a type como dos valores,
+          pero realmente a gorm le mandamos un string, si se maneja con un enum o
+          un default, podria causar errores en el futuro
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: Esta es la API para la prueba técnica de Fullstack.
+  termsOfService: http://swagger.io/terms/
+  title: API de Órdenes de Servicio
+  version: "1.0"
+paths:
+  /customers:
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo cliente en la base de datos con estado inactivo por
+        defecto.
+      parameters:
+      - description: Datos del Cliente a crear
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Customer'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Customer'
+        "400":
+          description: 'Error: Petición inválida'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Error: Error interno del servidor'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crea un nuevo cliente
+      tags:
+      - customers
+  /customers/{customerID}/work-orders:
+    get:
+      description: Obtiene una lista de todas las órdenes de trabajo asociadas a un
+        cliente específico.
+      parameters:
+      - description: ID del Cliente (UUID)
+        in: path
+        name: customerID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.WorkOrder'
+            type: array
+        "400":
+          description: 'Error: ID de cliente inválido'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Error: Error interno del servidor'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca órdenes de trabajo por ID de cliente
+      tags:
+      - work-orders
+      - customers
+  /customers/{id}:
+    get:
+      description: Obtiene los detalles de un cliente específico usando su UUID.
+      parameters:
+      - description: ID del Cliente (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Customer'
+        "400":
+          description: 'Error: ID inválido'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Error: Cliente no encontrado'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Error: Error interno del servidor'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca un cliente por ID
+      tags:
+      - customers
+  /customers/active:
+    get:
+      description: Devuelve una lista de todos los clientes cuyo estado es 'is_active
+        = true'.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Customer'
+            type: array
+        "500":
+          description: 'Error: Error interno del servidor'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtiene clientes activos
+      tags:
+      - customers
+  /work-orders:
+    get:
+      description: Obtiene una lista de órdenes de trabajo. Se puede filtrar por rango
+        de fechas (since, until) y/o por estado (status).
+      parameters:
+      - description: 'Fecha de inicio (Formato RFC3339: 2024-07-30T10:00:00Z)'
+        in: query
+        name: since
+        type: string
+      - description: 'Fecha de fin (Formato RFC3339: 2024-07-30T10:00:00Z)'
+        in: query
+        name: until
+        type: string
+      - description: Estado de la orden
+        enum:
+        - new
+        - done
+        - cancelled
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.WorkOrder'
+            type: array
+        "400":
+          description: 'Error: Parámetro de filtro inválido'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Error: Error interno del servidor'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca órdenes de trabajo con filtros
+      tags:
+      - work-orders
+    post:
+      consumes:
+      - application/json
+      description: Crea una nueva orden para un cliente. Valida reglas de negocio
+        como el estado del cliente y el intervalo de fechas.
+      parameters:
+      - description: Datos de la Orden de Trabajo a crear
+        in: body
+        name: workOrder
+        required: true
+        schema:
+          $ref: '#/definitions/domain.WorkOrder'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.WorkOrder'
+        "400":
+          description: 'Error: Petición inválida'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Error: Cliente no encontrado'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: 'Error: Conflicto de negocio (ej. cliente ya activo)'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Error: Error interno del servidor'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crea una nueva orden de trabajo
+      tags:
+      - work-orders
+  /work-orders/{id}:
+    get:
+      description: Obtiene los detalles de una orden de trabajo, incluyendo la información
+        del cliente embebida.
+      parameters:
+      - description: ID de la Orden de Trabajo (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.WorkOrder'
+        "400":
+          description: 'Error: ID inválido'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Error: Orden no encontrada'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Error: Error interno del servidor'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca una orden de trabajo por ID
+      tags:
+      - work-orders
+  /work-orders/{id}/complete:
+    patch:
+      description: Marca una orden como 'done', lo que activa/desactiva al cliente
+        asociado y envía un evento a Redis.
+      parameters:
+      - description: ID de la Orden de Trabajo (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'Error: ID inválido'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'Error: Orden no encontrada'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: 'Error: Conflicto de estado (ej. la orden ya está completada)'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'Error: Error interno del servidor'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Completa una orden de trabajo
+      tags:
+      - work-orders
+swagger: "2.0"

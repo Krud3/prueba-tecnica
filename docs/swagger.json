@@ -1,0 +1,567 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Esta es la API para la prueba técnica de Fullstack.",
+        "title": "API de Órdenes de Servicio",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "/api/v1",
+    "paths": {
+        "/customers": {
+            "post": {
+                "description": "Crea un nuevo cliente en la base de datos con estado inactivo por defecto.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Crea un nuevo cliente",
+                "parameters": [
+                    {
+                        "description": "Datos del Cliente a crear",
+                        "name": "customer",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.Customer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Customer"
+                        }
+                    },
+                    "400": {
+                        "description": "Error: Petición inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error: Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/active": {
+            "get": {
+                "description": "Devuelve una lista de todos los clientes cuyo estado es 'is_active = true'.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Obtiene clientes activos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Customer"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error: Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/{customerID}/work-orders": {
+            "get": {
+                "description": "Obtiene una lista de todas las órdenes de trabajo asociadas a un cliente específico.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "work-orders",
+                    "customers"
+                ],
+                "summary": "Busca órdenes de trabajo por ID de cliente",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del Cliente (UUID)",
+                        "name": "customerID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.WorkOrder"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error: ID de cliente inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error: Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/{id}": {
+            "get": {
+                "description": "Obtiene los detalles de un cliente específico usando su UUID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Busca un cliente por ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del Cliente (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Customer"
+                        }
+                    },
+                    "400": {
+                        "description": "Error: ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Error: Cliente no encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error: Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/work-orders": {
+            "get": {
+                "description": "Obtiene una lista de órdenes de trabajo. Se puede filtrar por rango de fechas (since, until) y/o por estado (status).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "work-orders"
+                ],
+                "summary": "Busca órdenes de trabajo con filtros",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fecha de inicio (Formato RFC3339: 2024-07-30T10:00:00Z)",
+                        "name": "since",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Fecha de fin (Formato RFC3339: 2024-07-30T10:00:00Z)",
+                        "name": "until",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "new",
+                            "done",
+                            "cancelled"
+                        ],
+                        "type": "string",
+                        "description": "Estado de la orden",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.WorkOrder"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error: Parámetro de filtro inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error: Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Crea una nueva orden para un cliente. Valida reglas de negocio como el estado del cliente y el intervalo de fechas.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "work-orders"
+                ],
+                "summary": "Crea una nueva orden de trabajo",
+                "parameters": [
+                    {
+                        "description": "Datos de la Orden de Trabajo a crear",
+                        "name": "workOrder",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.WorkOrder"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/domain.WorkOrder"
+                        }
+                    },
+                    "400": {
+                        "description": "Error: Petición inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Error: Cliente no encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Error: Conflicto de negocio (ej. cliente ya activo)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error: Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/work-orders/{id}": {
+            "get": {
+                "description": "Obtiene los detalles de una orden de trabajo, incluyendo la información del cliente embebida.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "work-orders"
+                ],
+                "summary": "Busca una orden de trabajo por ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la Orden de Trabajo (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.WorkOrder"
+                        }
+                    },
+                    "400": {
+                        "description": "Error: ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Error: Orden no encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error: Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/work-orders/{id}/complete": {
+            "patch": {
+                "description": "Marca una orden como 'done', lo que activa/desactiva al cliente asociado y envía un evento a Redis.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "work-orders"
+                ],
+                "summary": "Completa una orden de trabajo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la Orden de Trabajo (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error: ID inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Error: Orden no encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Error: Conflicto de estado (ej. la orden ya está completada)",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error: Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.Customer": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "endDate": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "startDate": {
+                    "description": "puntero para poder capturar el nil",
+                    "type": "string"
+                },
+                "workOrders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.WorkOrder"
+                    }
+                }
+            }
+        },
+        "domain.Status": {
+            "type": "string",
+            "enum": [
+                "new",
+                "done",
+                "cancelled"
+            ],
+            "x-enum-varnames": [
+                "StatusNew",
+                "StatusDone",
+                "StatusCancelled"
+            ]
+        },
+        "domain.Type": {
+            "type": "string",
+            "enum": [
+                "activar cliente",
+                "cancelar cliente"
+            ],
+            "x-enum-varnames": [
+                "TypeActivate",
+                "TypeCancell"
+            ]
+        },
+        "domain.WorkOrder": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "customer": {
+                    "description": "facilita la condicion 9",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.Customer"
+                        }
+                    ]
+                },
+                "customerID": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "plannedDateBegin": {
+                    "type": "string"
+                },
+                "plannedDateEnd": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.Status"
+                },
+                "type": {
+                    "description": "debido a la logica de negocio, definimos a type como dos valores, pero realmente a gorm le mandamos un string, si se maneja con un enum o un default, podria causar errores en el futuro",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.Type"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -6,10 +6,18 @@ prueba-tecnica
 │  └─ api
 │     └─ main.go
 ├─ docker-compose.yml
+├─ docs
+│  ├─ docs.go
+│  ├─ swagger.json
+│  └─ swagger.yaml
 ├─ go.mod
 ├─ go.sum
 ├─ internal
 │  ├─ adapters
+│  │  ├─ rest
+│  │  │  ├─ customer_handler.go
+│  │  │  ├─ router.go
+│  │  │  └─ workorder_handler.go
 │  │  └─ storage
 │  │     ├─ customer_repository.go
 │  │     ├─ db.go

@@ -24,16 +24,22 @@ func NewCustomerHandler(cS *services.CustomerService) *CustomerHandler {
 // @Tags         customers
 // @Accept       json
 // @Produce      json
-// @Param        customer body domain.Customer true "Datos del Cliente a crear"
+// @Param        customer body CreateCustomerRequest true "Datos del Cliente a crear"
 // @Success      201 {object} domain.Customer
 // @Failure      400 {object} map[string]string "Error: Petición inválida"
 // @Failure      500 {object} map[string]string "Error: Error interno del servidor"
 // @Router       /customers [post]
 func (cH *CustomerHandler) Create(c *fiber.Ctx) error {
-	var customer domain.Customer
-	// check if params match domain.Customer
-	if err := c.BodyParser(&customer); err != nil {
+	// using dto now
+	var req CreateCustomerRequest
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "cuerpo de la petición inválido"})
+	}
+	// map DTO to domain.Customer
+	customer := domain.Customer{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Address:   req.Address,
 	}
 	// try to create
 	err := cH.cS.Create(c.Context(), customer)

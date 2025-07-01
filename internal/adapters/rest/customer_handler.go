@@ -101,3 +101,23 @@ func (cH *CustomerHandler) GetActive(c *fiber.Ctx) error {
 	// 200 ok or empty
 	return c.Status(fiber.StatusOK).JSON(customers)
 }
+
+// GetAll obtiene todos los clientes.
+// @Summary      Obtiene todos los clientes
+// @Description  Devuelve una lista de todos los clientes.
+// @Tags         customers
+// @Produce      json
+// @Success      200 {array} domain.Customer
+// @Failure      500 {object} map[string]string "Error: Error interno del servidor"
+// @Router       /customers/all [get]
+func (cH *CustomerHandler) GetAll(c *fiber.Ctx) error {
+
+	customers, err := cH.cS.GetAll(c.Context())
+
+	if err != nil {
+		// 500 server error due user can not send invalid data
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "error al buscar todos los clientes"})
+	}
+	// 200 ok or empty
+	return c.Status(fiber.StatusOK).JSON(customers)
+}

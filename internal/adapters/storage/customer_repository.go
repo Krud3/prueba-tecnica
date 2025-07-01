@@ -65,6 +65,14 @@ func (r *gormCustomerRepository) GetActive(ctx context.Context) ([]domain.Custom
 	return customers, err
 }
 
+func (r *gormCustomerRepository) GetAll(ctx context.Context) ([]domain.Customer, error) {
+	var customers []domain.Customer
+
+	err := r.db.WithContext(ctx).Find(&customers).Error
+
+	return customers, err
+}
+
 func (r *gormCustomerRepository) Update(ctx context.Context, customer domain.Customer) error {
 	if customer.ID == uuid.Nil {
 		return ErrNoCID

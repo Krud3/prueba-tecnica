@@ -51,6 +51,10 @@ func (cS *CustomerService) GetActive(ctx context.Context) ([]domain.Customer, er
 	return cS.cRepo.GetActive(ctx)
 }
 
+func (cS *CustomerService) GetAll(ctx context.Context) ([]domain.Customer, error) {
+	return cS.cRepo.GetAll(ctx)
+}
+
 func (cS *CustomerService) Update(ctx context.Context, customer domain.Customer) error {
 	return cS.cRepo.Update(ctx, customer)
 }

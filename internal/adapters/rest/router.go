@@ -29,6 +29,7 @@ func SetUpRoutes(app *fiber.App, customerHandler *CustomerHandler, workOrderHand
 	customers := api.Group("/customers")
 	customers.Post("/", customerHandler.Create)
 	customers.Get("/active", customerHandler.GetActive)
+	customers.Get("/all", customerHandler.GetAll)
 	customers.Get("/:id", customerHandler.GetByID)
 
 	// ----- WORKORDER

@@ -20,6 +20,7 @@ type CustomerRepository interface {
 	Create(ctx context.Context, customer domain.Customer) error
 	FindByID(ctx context.Context, id uuid.UUID) (*domain.Customer, error)
 	GetActive(ctx context.Context) ([]domain.Customer, error)
+	GetAll(ctx context.Context) ([]domain.Customer, error)
 	Update(ctx context.Context, customer domain.Customer) error
 }
 

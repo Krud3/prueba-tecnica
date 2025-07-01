@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"github.com/krud3/prueba-tecnica/internal/adapters/rest"
 	"github.com/krud3/prueba-tecnica/internal/adapters/storage"
@@ -64,6 +65,13 @@ func main() {
 
 	// create web server with fiber
 	app := fiber.New()
+
+	// allows vite to make petitions
+	allowedOrigin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: allowedOrigin,
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
 	// config routes from API, calls handlers
 	rest.SetUpRoutes(app, customerHandler, workOrderHandler)

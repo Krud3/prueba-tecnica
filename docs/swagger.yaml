@@ -228,6 +228,27 @@ paths:
       summary: Obtiene clientes activos
       tags:
       - customers
+  /customers/all:
+    get:
+      description: Devuelve una lista de todos los clientes.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Customer'
+            type: array
+        "500":
+          description: 'Error: Error interno del servidor'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtiene todos los clientes
+      tags:
+      - customers
   /work-orders:
     get:
       description: Obtiene una lista de órdenes de trabajo. Se puede filtrar por rango

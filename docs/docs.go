@@ -100,6 +100,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/customers/all": {
+            "get": {
+                "description": "Devuelve una lista de todos los clientes.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "customers"
+                ],
+                "summary": "Obtiene todos los clientes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Customer"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error: Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/customers/{customerID}/work-orders": {
             "get": {
                 "description": "Obtiene una lista de todas las órdenes de trabajo asociadas a un cliente específico.",

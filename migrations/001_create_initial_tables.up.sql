@@ -1,10 +1,10 @@
--- migrations/000001_create_initial_tables.up.sql
+-- migrations/001_create_initial_tables.up.sql
 
 -- Time zone
 SET TIME ZONE 'America/Bogota';
 
 -- Enum work_order_status
-CREATE TYPE IF NOT EXISTS work_order_status AS ENUM ('new', 'done', 'cancelled');
+CREATE TYPE work_order_status AS ENUM ('new', 'done', 'cancelled');
 
 -- Customers table
 CREATE TABLE IF NOT EXISTS customers (

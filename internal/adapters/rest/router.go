@@ -28,15 +28,15 @@ func SetUpRoutes(app *fiber.App, customerHandler *CustomerHandler, workOrderHand
 	// ----- CUSTOMER
 	customers := api.Group("/customers")
 	customers.Post("/", customerHandler.Create)
+	customers.Get("/active", customerHandler.GetActive)
 	customers.Get("/:id", customerHandler.GetByID)
-	customers.Get("active", customerHandler.GetActive)
 
 	// ----- WORKORDER
 	workOrders := api.Group("/work-orders")
 	workOrders.Post("/", workOrderHandler.Create)
-	workOrders.Patch("/:id/complete", workOrderHandler.CompleteOrder)
-	workOrders.Get("/:id", workOrderHandler.GetByID)
 	workOrders.Get("/", workOrderHandler.GetFiltered)
+	workOrders.Get("/:id", workOrderHandler.GetByID)
+	workOrders.Patch("/:id/complete", workOrderHandler.CompleteOrder)
 
 	// ----- GET ALL ORDERS FROM A CLIENT
 	customers.Get("/:customerID/work-orders", workOrderHandler.GetByCustomerID)

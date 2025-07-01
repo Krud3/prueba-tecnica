@@ -36,7 +36,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.Customer"
+                            "$ref": "#/definitions/rest.CreateCustomerRequest"
                         }
                     }
                 ],
@@ -291,7 +291,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.WorkOrder"
+                            "$ref": "#/definitions/rest.CreateWorkOrderRequest"
                         }
                     }
                 ],
@@ -566,6 +566,40 @@ const docTemplate = `{
                             "$ref": "#/definitions/domain.Type"
                         }
                     ]
+                }
+            }
+        },
+        "rest.CreateCustomerRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                }
+            }
+        },
+        "rest.CreateWorkOrderRequest": {
+            "type": "object",
+            "properties": {
+                "customerID": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "plannedDateBegin": {
+                    "type": "string"
+                },
+                "plannedDateEnd": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/domain.Type"
                 }
             }
         }

@@ -29,7 +29,7 @@ func NewWorkOrderHandler(wS *services.WorkOrderService) *WorkOrderHandler {
 // @Tags         work-orders
 // @Accept       json
 // @Produce      json
-// @Param        workOrder body domain.WorkOrder true "Datos de la Orden de Trabajo a crear"
+// @Param        workOrder body CreateWorkOrderRequest true "Datos de la Orden de Trabajo a crear"
 // @Success      201 {object} domain.WorkOrder
 // @Failure      400 {object} map[string]string "Error: Petición inválida"
 // @Failure      404 {object} map[string]string "Error: Cliente no encontrado"
@@ -37,12 +37,18 @@ func NewWorkOrderHandler(wS *services.WorkOrderService) *WorkOrderHandler {
 // @Failure      500 {object} map[string]string "Error: Error interno del servidor"
 // @Router       /work-orders [post]
 func (wH *WorkOrderHandler) Create(c *fiber.Ctx) error {
-	// store workOrder data
-	var workOrder domain.WorkOrder
-	// try to parse c data to workOrder struct
-	if err := c.BodyParser(&workOrder); err != nil {
-		// if fails badrequest 400
+	// now with DTO
+	var req CreateWorkOrderRequest
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "cuerpo de la petición inválido"})
+	}
+
+	workOrder := domain.WorkOrder{
+		CustomerID:       req.CustomerID,
+		Description:      req.Description,
+		PlannedDateBegin: req.PlannedDateBegin,
+		PlannedDateEnd:   req.PlannedDateEnd,
+		Type:             req.Type,
 	}
 	// using handler to get the service to create workOrder
 	err := wH.wS.Create(c.Context(), workOrder)
